@@ -27,8 +27,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -49,13 +49,13 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  */
 @Mojo( name = "analyze-duplicate", aggregator = false, threadSafe = true )
 public class AnalyzeDuplicateMojo
-    extends AbstractMojo
+        extends AbstractMojo
 {
     public static final String MESSAGE_DUPLICATE_DEP_IN_DEPENDENCIES =
-        "List of duplicate dependencies defined in <dependencies/> in your pom.xml:\n";
+            "List of duplicate dependencies defined in <dependencies/> in your pom.xml:\n";
 
     public static final String MESSAGE_DUPLICATE_DEP_IN_DEPMGMT =
-        "List of duplicate dependencies defined in <dependencyManagement/> in your pom.xml:\n";
+            "List of duplicate dependencies defined in <dependencyManagement/> in your pom.xml:\n";
 
     /**
      * Skip plugin execution completely.
@@ -76,7 +76,7 @@ public class AnalyzeDuplicateMojo
      */
     @Override
     public void execute()
-        throws MojoExecutionException, MojoFailureException
+            throws MojoExecutionException, MojoFailureException
     {
         if ( skip )
         {
@@ -105,7 +105,7 @@ public class AnalyzeDuplicateMojo
         if ( model.getDependencyManagement() != null && model.getDependencyManagement().getDependencies() != null )
         {
             duplicateDependenciesManagement =
-                findDuplicateDependencies( model.getDependencyManagement().getDependencies() );
+                    findDuplicateDependencies( model.getDependencyManagement().getDependencies() );
         }
 
         if ( getLog().isInfoEnabled() )
@@ -151,15 +151,10 @@ public class AnalyzeDuplicateMojo
 
     private Set<String> findDuplicateDependencies( List<Dependency> modelDependencies )
     {
-        List<String> modelDependencies2 = new ArrayList<>();
-        for ( Dependency dep : modelDependencies )
-        {
-            modelDependencies2.add( dep.getManagementKey() );
-        }
-
-        // @formatter:off
+        List<String> modelDependencies2 =
+                modelDependencies.stream().map( Dependency::getManagementKey ).collect( Collectors.toCollection(
+                        ArrayList::new ) );
         return new LinkedHashSet<>(
-                CollectionUtils.disjunction( modelDependencies2, new LinkedHashSet<>( modelDependencies2 ) ) );
-        // @formatter:on
+                Util.symmetricDifference( modelDependencies2, new LinkedHashSet<>( modelDependencies2 ) ) );
     }
 }

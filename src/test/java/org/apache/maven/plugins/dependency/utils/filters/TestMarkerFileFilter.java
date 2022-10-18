@@ -26,9 +26,9 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.dependency.DirectoryUtil;
 import org.apache.maven.plugins.dependency.testUtils.DependencyArtifactStubFactory;
 import org.apache.maven.plugins.dependency.utils.markers.DefaultFileMarkerHandler;
 import org.apache.maven.plugin.logging.Log;
@@ -55,7 +55,7 @@ public class TestMarkerFileFilter
         super.setUp();
 
         outputFolder = new File( "target/markers/" );
-        FileUtils.deleteDirectory( outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
         assertFalse( outputFolder.exists() );
 
         this.fact = new DependencyArtifactStubFactory( outputFolder, false );
@@ -65,7 +65,7 @@ public class TestMarkerFileFilter
     protected void tearDown()
         throws IOException
     {
-        FileUtils.deleteDirectory( outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
     }
 
     public void testMarkerFile()
@@ -99,7 +99,7 @@ public class TestMarkerFileFilter
         result = filter.filter( artifacts );
         assertEquals( 2, result.size() );
         assertTrue( handler.clearMarker() );
-        FileUtils.deleteDirectory( outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
         assertFalse( outputFolder.exists() );
     }
 
@@ -119,7 +119,7 @@ public class TestMarkerFileFilter
         assertEquals( 2, result.size() );
 
         assertTrue( handler.clearMarker() );
-        FileUtils.deleteDirectory( outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
         assertFalse( outputFolder.exists() );
     }
 
@@ -157,7 +157,7 @@ public class TestMarkerFileFilter
         assertFalse( handler.isMarkerSet() );
         snap.getFile().delete();
         release.getFile().delete();
-        FileUtils.deleteDirectory( outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
         assertFalse( outputFolder.exists() );
     }
 

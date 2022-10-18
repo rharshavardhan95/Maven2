@@ -19,7 +19,8 @@ package org.apache.maven.plugins.dependency.resolvers;
  * under the License.
  */
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -49,7 +50,8 @@ public class ResolveDependencySourcesMojo
     protected void doExecute()
         throws MojoExecutionException
     {
-        if ( StringUtils.isEmpty( this.classifier ) )
+
+        if ( Objects.isNull( this.classifier ) || this.classifier.isEmpty() )
         {
             this.classifier = SOURCE_CLASSIFIER;
         }

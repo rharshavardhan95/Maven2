@@ -28,9 +28,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.plugin.AbstractMojo;
@@ -492,24 +492,22 @@ public abstract class AbstractAnalyzeMojo
         if ( artifacts.isEmpty() )
         {
             getLog().info( "   None" );
+            return;
         }
-        else
+        for ( Artifact artifact : artifacts )
         {
-            for ( Artifact artifact : artifacts )
+            // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
+            artifact.isSnapshot();
+
+            if ( warn )
             {
-                // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
-                artifact.isSnapshot();
-
-                if ( warn )
-                {
-                    logDependencyWarning( "   " + artifact );
-                }
-                else
-                {
-                    getLog().info( "   " + artifact );
-                }
-
+                logDependencyWarning( "   " + artifact );
             }
+            else
+            {
+                getLog().info( "   " + artifact );
+            }
+
         }
     }
 
@@ -518,32 +516,31 @@ public abstract class AbstractAnalyzeMojo
         if ( artifacts.isEmpty() )
         {
             getLog().info( "   None" );
+            return;
         }
-        else
+
+        for ( Map.Entry<Artifact, Set<String>> entry : artifacts.entrySet() )
         {
-            for ( Map.Entry<Artifact, Set<String>> entry : artifacts.entrySet() )
+            // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
+            entry.getKey().isSnapshot();
+
+            if ( warn )
             {
-                // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
-                entry.getKey().isSnapshot();
-
-                if ( warn )
+                logDependencyWarning( "   " + entry.getKey() );
+                for ( String clazz : entry.getValue() )
                 {
-                    logDependencyWarning( "   " + entry.getKey() );
-                    for ( String clazz : entry.getValue() )
-                    {
-                        logDependencyWarning( "      class " + clazz );
-                    }
+                    logDependencyWarning( "      class " + clazz );
                 }
-                else
-                {
-                    getLog().info( "   " + entry.getKey() );
-                    for ( String clazz : entry.getValue() )
-                    {
-                        getLog().info( "      class " + clazz );
-                    }
-                }
-
             }
+            else
+            {
+                getLog().info( "   " + entry.getKey() );
+                for ( String clazz : entry.getValue() )
+                {
+                    getLog().info( "      class " + clazz );
+                }
+            }
+
         }
     }
 
@@ -561,78 +558,83 @@ public abstract class AbstractAnalyzeMojo
 
     private void writeDependencyXML( Set<Artifact> artifacts )
     {
-        if ( !artifacts.isEmpty() )
+        if ( artifacts.isEmpty() )
         {
-            getLog().info( "Add the following to your pom to correct the missing dependencies: " );
+            return;
+        }
 
-            StringWriter out = new StringWriter();
-            PrettyPrintXMLWriter writer = new PrettyPrintXMLWriter( out );
+        getLog().info( "Add the following to your pom to correct the missing dependencies: " );
 
-            for ( Artifact artifact : artifacts )
+        StringWriter out = new StringWriter();
+        PrettyPrintXMLWriter writer = new PrettyPrintXMLWriter( out );
+
+        for ( Artifact artifact : artifacts )
+        {
+            // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
+            artifact.isSnapshot();
+
+            writer.startElement( "dependency" );
+            writer.startElement( "groupId" );
+            writer.writeText( artifact.getGroupId() );
+            writer.endElement();
+            writer.startElement( "artifactId" );
+            writer.writeText( artifact.getArtifactId() );
+            writer.endElement();
+            writer.startElement( "version" );
+            writer.writeText( artifact.getBaseVersion() );
+
+            if ( Objects.nonNull( artifact.getClassifier() ) && !artifact.getClassifier().isEmpty() )
             {
-                // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
-                artifact.isSnapshot();
-
-                writer.startElement( "dependency" );
-                writer.startElement( "groupId" );
-                writer.writeText( artifact.getGroupId() );
-                writer.endElement();
-                writer.startElement( "artifactId" );
-                writer.writeText( artifact.getArtifactId() );
-                writer.endElement();
-                writer.startElement( "version" );
-                writer.writeText( artifact.getBaseVersion() );
-                if ( !StringUtils.isBlank( artifact.getClassifier() ) )
-                {
-                    writer.startElement( "classifier" );
-                    writer.writeText( artifact.getClassifier() );
-                    writer.endElement();
-                }
-                writer.endElement();
-
-                if ( !Artifact.SCOPE_COMPILE.equals( artifact.getScope() ) )
-                {
-                    writer.startElement( "scope" );
-                    writer.writeText( artifact.getScope() );
-                    writer.endElement();
-                }
+                writer.startElement( "classifier" );
+                writer.writeText( artifact.getClassifier() );
                 writer.endElement();
             }
+            writer.endElement();
 
-            getLog().info( System.lineSeparator() + out.getBuffer() );
+            if ( !Artifact.SCOPE_COMPILE.equals( artifact.getScope() ) )
+            {
+                writer.startElement( "scope" );
+                writer.writeText( artifact.getScope() );
+                writer.endElement();
+            }
+            writer.endElement();
         }
+
+        getLog().info( System.lineSeparator() + out.getBuffer() );
     }
 
     private void writeScriptableOutput( Set<Artifact> artifacts )
     {
-        if ( !artifacts.isEmpty() )
+        if ( artifacts.isEmpty() )
         {
-            getLog().info( "Missing dependencies: " );
-            String pomFile = baseDir.getAbsolutePath() + File.separatorChar + "pom.xml";
-            StringBuilder buf = new StringBuilder();
-
-            for ( Artifact artifact : artifacts )
-            {
-                // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
-                artifact.isSnapshot();
-
-                //CHECKSTYLE_OFF: LineLength
-                buf.append( scriptableFlag )
-                   .append( ":" )
-                   .append( pomFile )
-                   .append( ":" )
-                   .append( artifact.getDependencyConflictId() )
-                   .append( ":" )
-                   .append( artifact.getClassifier() )
-                   .append( ":" )
-                   .append( artifact.getBaseVersion() )
-                   .append( ":" )
-                   .append( artifact.getScope() )
-                   .append( System.lineSeparator() );
-                //CHECKSTYLE_ON: LineLength
-            }
-            getLog().info( System.lineSeparator() + buf );
+            return;
         }
+
+        getLog().info( "Missing dependencies: " );
+        String pomFile = baseDir.getAbsolutePath() + File.separatorChar + "pom.xml";
+        StringBuilder buf = new StringBuilder();
+
+        for ( Artifact artifact : artifacts )
+        {
+            // called because artifact will set the version to -SNAPSHOT only if I do this. MNG-2961
+            artifact.isSnapshot();
+
+            //CHECKSTYLE_OFF: LineLength
+            buf.append( scriptableFlag )
+               .append( ":" )
+               .append( pomFile )
+               .append( ":" )
+               .append( artifact.getDependencyConflictId() )
+               .append( ":" )
+               .append( artifact.getClassifier() )
+               .append( ":" )
+               .append( artifact.getBaseVersion() )
+               .append( ":" )
+               .append( artifact.getScope() )
+               .append( System.lineSeparator() );
+            //CHECKSTYLE_ON: LineLength
+        }
+        getLog().info( System.lineSeparator() + buf );
     }
 
     private List<Artifact> filterDependencies( Set<Artifact> artifacts, String[] excludes )

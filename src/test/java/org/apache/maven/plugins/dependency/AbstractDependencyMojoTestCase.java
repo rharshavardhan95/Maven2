@@ -20,18 +20,16 @@ package org.apache.maven.plugins.dependency;
  */
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.LegacySupport;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugins.dependency.testUtils.DependencyArtifactStubFactory;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.LocalRepositoryManager;
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 
 public abstract class AbstractDependencyMojoTestCase
     extends AbstractMojoTestCase
@@ -54,7 +52,7 @@ public abstract class AbstractDependencyMojoTestCase
         super.setUp();
         testDir = new File( getBasedir(), "target" + File.separatorChar + "unit-tests" + File.separatorChar + testDirStr
             + File.separatorChar );
-        FileUtils.deleteDirectory( testDir );
+        DirectoryUtil.deleteDirectories( testDir );
         assertFalse( testDir.exists() );
 
         stubFactory = new DependencyArtifactStubFactory( this.testDir, createFiles, flattenedPath );
@@ -64,15 +62,7 @@ public abstract class AbstractDependencyMojoTestCase
     {
         if ( testDir != null )
         {
-            try
-            {
-                FileUtils.deleteDirectory( testDir );
-            }
-            catch ( IOException e )
-            {
-                e.printStackTrace();
-                fail( "Trying to remove directory:" + testDir + System.lineSeparator() + e.toString() );
-            }
+            DirectoryUtil.deleteDirectories( testDir );
             assertFalse( testDir.exists() );
         }
     }
@@ -82,7 +72,7 @@ public abstract class AbstractDependencyMojoTestCase
     {
         mojo.copyFile( artifact, destFile );
     }
-    
+
 
     protected void installLocalRepository( LegacySupport legacySupport )
         throws ComponentLookupException

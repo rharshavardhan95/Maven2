@@ -24,15 +24,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.dependency.fromConfiguration.ArtifactItem;
-import org.apache.maven.plugins.dependency.testUtils.DependencyArtifactStubFactory;
-import org.apache.maven.plugins.dependency.testUtils.stubs.StubUnpackFileMarkerHandler;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.SilentLog;
+import org.apache.maven.plugins.dependency.DirectoryUtil;
+import org.apache.maven.plugins.dependency.fromConfiguration.ArtifactItem;
+import org.apache.maven.plugins.dependency.testUtils.DependencyArtifactStubFactory;
+import org.apache.maven.plugins.dependency.testUtils.stubs.StubUnpackFileMarkerHandler;
 
 public class TestUnpackMarkerFileHandler
     extends AbstractMojoTestCase
@@ -54,7 +54,7 @@ public class TestUnpackMarkerFileHandler
 
         testDir = new File( getBasedir(), "target" + File.separatorChar + "unit-tests" + File.separatorChar
             + "unpack-markers" + File.separatorChar );
-        FileUtils.deleteDirectory( testDir );
+        DirectoryUtil.deleteDirectories( testDir );
         assertFalse( testDir.exists() );
 
         stubFactory = new DependencyArtifactStubFactory( this.testDir, false );
@@ -77,14 +77,14 @@ public class TestUnpackMarkerFileHandler
         artifactItems.add( artifactItem );
 
         outputFolder = new File( "target/markers/" );
-        FileUtils.deleteDirectory( this.outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
         assertFalse( outputFolder.exists() );
     }
 
     protected void tearDown()
         throws IOException
     {
-        FileUtils.deleteDirectory( this.outputFolder );
+        DirectoryUtil.deleteDirectories( outputFolder );
     }
 
     /**

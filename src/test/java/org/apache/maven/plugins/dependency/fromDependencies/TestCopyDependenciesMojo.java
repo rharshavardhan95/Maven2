@@ -22,6 +22,7 @@ package org.apache.maven.plugins.dependency.fromDependencies;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -35,7 +36,6 @@ import org.apache.maven.plugins.dependency.AbstractDependencyMojoTestCase;
 import org.apache.maven.plugins.dependency.utils.DependencyUtil;
 import org.apache.maven.plugins.dependency.utils.markers.DefaultFileMarkerHandler;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.StringUtils;
 
 public class TestCopyDependenciesMojo
     extends AbstractDependencyMojoTestCase
@@ -455,11 +455,12 @@ public class TestCopyDependenciesMojo
             String useClassifier = artifact.getClassifier();
             String useType = artifact.getType();
 
-            if ( StringUtils.isNotEmpty( testClassifier ) )
+
+            if ( Objects.nonNull( testClassifier ) && !testClassifier.isEmpty() )
             {
                 useClassifier = "-" + testClassifier;
                 // type is only used if classifier is used.
-                if ( StringUtils.isNotEmpty( testType ) )
+                if ( Objects.nonNull( testType ) && !testType.isEmpty() )
                 {
                     useType = testType;
                 }
