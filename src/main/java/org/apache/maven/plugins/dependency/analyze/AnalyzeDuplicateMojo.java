@@ -21,14 +21,13 @@ package org.apache.maven.plugins.dependency.analyze;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -151,15 +150,9 @@ public class AnalyzeDuplicateMojo
 
     private Set<String> findDuplicateDependencies( List<Dependency> modelDependencies )
     {
-        List<String> modelDependencies2 = new ArrayList<>();
-        for ( Dependency dep : modelDependencies )
-        {
-            modelDependencies2.add( dep.getManagementKey() );
-        }
-
-        // @formatter:off
+        List<String> modelDependencies2 =
+                modelDependencies.stream().map( Dependency::getManagementKey ).collect( Collectors.toList() );
         return new LinkedHashSet<>(
-                CollectionUtils.disjunction( modelDependencies2, new LinkedHashSet<>( modelDependencies2 ) ) );
-        // @formatter:on
+                Util.symmetricDifference( modelDependencies2, new LinkedHashSet<>( modelDependencies2 ) ) );
     }
 }
