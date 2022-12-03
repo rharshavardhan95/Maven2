@@ -129,7 +129,7 @@ public class AnalyzeReportView {
      */
     public void generateDependenciesTable(Sink sink, Iterator<Artifact> iter) {
         sink.table();
-        sink.tableRows(null, false);
+        sink.tableRows();
 
         sink.tableRow();
         sink.tableCell();
